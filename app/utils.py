@@ -19,7 +19,7 @@ def generate_random_code(code_length: int | None = None) -> str:
     code = ""
 
     if not code_length:
-        code_length = 10
+        code_length = 6
 
     choices = [capital_alphabets, lower_alphabets, numbers]
 

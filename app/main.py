@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import engine, Base, SessionLocal
@@ -50,5 +51,10 @@ def shorten_url(url: ShortenUrl, db: Session = Depends(get_db)):
 
 
 @app.get("/u/{url_id}")
-def get_url(url_id: str):
-    pass
+def get_url(url_id: str, db: Session = Depends(get_db)):
+    url = db.get(Urls, url_id)
+
+    if not url:
+        return HTTPException(404, detail="Page not found")
+
+    return RedirectResponse(url.url)
