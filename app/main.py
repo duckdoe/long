@@ -1,16 +1,20 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.database import engine, Base, SessionLocal
-from app.models import Urls, Passwords
+from app.database import Base, SessionLocal, engine
+from app.models import Passwords, Urls
 from app.schemas import ShortenUrl
-
 from app.utils import validate_url
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+template = Jinja2Templates(directory="app/templates")
 
 
 def get_db():
@@ -22,7 +26,13 @@ def get_db():
         db.close()
 
 
-@app.post("/shorten")
+@app.get("/")
+def index(request: Request):
+
+    return template.TemplateResponse(request, "index.html")
+
+
+@app.post("/api/shorten")
 def shorten_url(url: ShortenUrl, db: Session = Depends(get_db)):
     has_password = False
     is_valid_url = validate_url(url.url)
