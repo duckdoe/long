@@ -23,7 +23,8 @@ async function shortenUrlRequest(url, password = null) {
 
     let data = await res.json();
 
-    if (res.ok) success = true;
+    if (data.status_code >= 200 && data.status_code <= 300) success = true;
+    console.log(res, data);
     return { success, data };
 }
 
@@ -35,13 +36,16 @@ shortenUrlButton.addEventListener("click", async function () {
         return;
     }
     const url = urlInput.value;
+    let password = null;
 
-    const res = await shortenUrlRequest(url);
+    if (pwInput.value.trim() != "") password = pwInput.value;
+
+    const res = await shortenUrlRequest(url, password);
 
     if (!res.success) {
         console.error("error: something unexpected happened");
         return;
     }
 
-    console.log("Success", res.data);
+    console.log("Success", res);
 });

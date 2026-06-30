@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.database import Base, SessionLocal, engine
 from app.models import Passwords, Urls
-from app.schemas import ShortenUrl
+from app.schemas import ShortenUrl, UnlockUrl
 from app.utils import validate_url
+
+from sqlalchemy import select
 
 Base.metadata.create_all(bind=engine)
 
@@ -61,10 +63,34 @@ def shorten_url(url: ShortenUrl, db: Session = Depends(get_db)):
 
 
 @app.get("/u/{url_id}")
-def get_url(url_id: str, db: Session = Depends(get_db)):
+def get_url(url_id: str, request: Request, db: Session = Depends(get_db)):
     url = db.get(Urls, url_id)
 
     if not url:
         return HTTPException(404, detail="Page not found")
 
+    if url.has_password:
+        return template.TemplateResponse(
+            request,
+            "unlock.html",
+        )
+
     return RedirectResponse(url.url)
+
+
+@app.post("/api/unlock/{code}")
+def unlock_url(code: str, lock: UnlockUrl, db: Session = Depends(get_db)):
+    pw = db.scalars(select(Passwords).where(Passwords.url_id == code)).first()
+
+    if not pw:
+        return HTTPException(503, detail="not password protected")
+
+    if pw.password != lock.password:
+        return HTTPException(401, detail="Incorrect password")
+
+    url = db.get(Urls, code)
+
+    if url is None:
+        return HTTPException(404, detail="url not found")
+
+    return {"status_code": 200, "url": url.url}
