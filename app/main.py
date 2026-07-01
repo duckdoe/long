@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import Base, SessionLocal, engine
 from app.models import Passwords, Urls
 from app.schemas import ShortenUrl, UnlockUrl
-from app.utils import validate_url
+from app.utils import validate_url, hash_pw, check_pw, generate_code
 
 from sqlalchemy import select
 
@@ -45,15 +45,19 @@ def shorten_url(url: ShortenUrl, db: Session = Depends(get_db)):
     if not is_valid_url:
         return HTTPException(400, detail="Invalid url provided")
 
-    new_url = Urls(url=url.url, has_password=has_password)
+    code = generate_code()
+    while db.get(Urls, code) is not None:
+        code = generate_code()
+
+    new_url = Urls(id=code, url=url.url, has_password=has_password)
     db.add(new_url)
     db.commit()
     db.refresh(new_url)
 
     if has_password:
-        new_password = Passwords(
-            password=url.password, url_id=new_url.id
-        )  # change this and make sure to hash passwords
+        pw = hash_pw(str(url.password))
+
+        new_password = Passwords(password_hash=pw, url_id=new_url.id)
         db.add(new_password)
         db.commit()
         db.refresh(new_password)
@@ -75,6 +79,7 @@ def get_url(url_id: str, request: Request, db: Session = Depends(get_db)):
             "unlock.html",
         )
 
+    url.visits += 1  # add one to the visits
     return RedirectResponse(url.url)
 
 
@@ -83,14 +88,25 @@ def unlock_url(code: str, lock: UnlockUrl, db: Session = Depends(get_db)):
     pw = db.scalars(select(Passwords).where(Passwords.url_id == code)).first()
 
     if not pw:
-        return HTTPException(503, detail="not password protected")
+        return HTTPException(503, detail="Not password protected")
 
-    if pw.password != lock.password:
+    if not check_pw(lock.password, pw.password_hash):
         return HTTPException(401, detail="Incorrect password")
 
     url = db.get(Urls, code)
 
     if url is None:
-        return HTTPException(404, detail="url not found")
+        return HTTPException(404, detail="Url not found")
 
+    url.visits += 1  # add one to the clicks
     return {"status_code": 200, "url": url.url}
+
+
+@app.get("/manage/{id}")
+def manage(id: str, request: Request, db: Session = Depends(get_db)):
+    url = db.scalars(select(Urls).where(Urls.clicks_token == id)).first()
+
+    if not url:
+        return HTTPException(404, "Page does not exists")
+
+    return template.TemplateResponse(request, "manage.html")

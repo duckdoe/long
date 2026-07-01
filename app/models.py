@@ -1,22 +1,23 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, ForeignKey, Boolean, UUID, Text, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, ForeignKey, Boolean, UUID, Text, DateTime, Integer
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-from app.utils import generate_random_code
 
 
 class Urls(Base):
     __tablename__ = "urls"
 
-    id: Mapped[str] = mapped_column(
-        String(10), primary_key=True, default=generate_random_code
-    )
+    id: Mapped[str] = mapped_column(String(10), primary_key=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
     has_password: Mapped[bool] = mapped_column(Boolean, default=False)
-    date_created: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    clicks_token: Mapped[str] = mapped_column(
+        UUID(as_uuid=True), nullable=False, default=uuid.uuid4
+    )
+    visits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class Passwords(Base):
@@ -24,6 +25,9 @@ class Passwords(Base):
 
     id: Mapped[str] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    password: Mapped[str] = mapped_column(Text, nullable=False)
-    url_id: Mapped[str] = mapped_column(ForeignKey("urls.id"), nullable=False)
+    )  # primary key
+
+    url_id: Mapped[str] = mapped_column(
+        ForeignKey("urls.id"), nullable=False, unique=True
+    )  # url_code fx
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False, unique=True)

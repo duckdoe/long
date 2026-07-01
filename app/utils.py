@@ -1,5 +1,7 @@
-import re
 import random
+import re
+
+import bcrypt
 
 
 def validate_url(url: str) -> bool:
@@ -10,23 +12,20 @@ def validate_url(url: str) -> bool:
     return match is not None
 
 
-capital_alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-lower_alphabets = "abcdefghijklmnopqrstuvwxyz"
-numbers = "0123456789"
-
-
-def generate_random_code(code_length: int | None = None) -> str:
+def generate_code() -> str:
+    alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVYZ"
     code = ""
 
-    if not code_length:
-        code_length = 6
-
-    choices = [capital_alphabets, lower_alphabets, numbers]
-
-    while len(code) < code_length:
-        choice = random.choice(choices)
-        char = random.choice(choice)
-
-        code += char
+    for i in range(6):
+        code += random.choice(alphanumeric)
 
     return code
+
+
+def hash_pw(password: str) -> str:
+    pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return pw
+
+
+def check_pw(pw: str, hashed_pw: str) -> bool:
+    return bcrypt.checkpw(pw.encode(), hashed_pw.encode())
