@@ -14,6 +14,37 @@ function validateInput(input) {
     );
 }
 
+function popUp(
+    success /*decides whether to show error or success popup*/,
+    details /* object determines what gets embedded in the body*/,
+) {
+    const messagePopUp = document.querySelector(".message-popup");
+    const overlay = document.querySelector(".overlay");
+
+    const errorHtml = `<h2 class="title" style="color: red;">Error:</h2>
+            <div class="body">
+                <p>${details.detail}</p>
+            </div>`;
+
+    const successHtml = `<h2 class="title" style="color: green;">Success:</h2>
+            <div class="body">
+                <p class="detail">Yay, your link is shorter now!</p>
+                <div class="url-container">
+                    <p class="url">${window.origin}/u/${details.id}</p>
+                </div>
+                <button class="copy-btn">Copy Link</button>
+            </div>`;
+
+    if (success) {
+        messagePopUp.innerHTML = successHtml;
+    } else {
+        messagePopUp.innerHTML = errorHtml;
+    }
+
+    overlay.classList.add("overlay-active");
+    messagePopUp.classList.add("active");
+}
+
 async function shortenUrlRequest(url, password = null) {
     let success = false;
 
@@ -30,7 +61,11 @@ async function shortenUrlRequest(url, password = null) {
 
     let data = await res.json();
 
-    if (data.status_code >= 200 && data.status_code <= 300) success = true;
+    if (
+        (data.status_code >= 200 && data.status_code <= 300) ||
+        data.visits == 0
+    )
+        success = true;
     console.log(res, data);
     return { success, data };
 }
@@ -57,7 +92,7 @@ shortenUrlButton.addEventListener("click", async function () {
     if (password && password.length < 8) {
         pwInput.style.borderColor = "red";
 
-        pwErrorMessage.style.color = "red"; // Tuen message color red
+        pwErrorMessage.style.color = "red"; // Turn message color red
         pwErrorMessage.textContent =
             "Password must contain atleast 8 characters";
 
@@ -66,10 +101,9 @@ shortenUrlButton.addEventListener("click", async function () {
 
     if (error) return;
 
-    const res = await shortenUrlRequest(url, password);
+    pwInput.value = "";
+    urlInput.value = "";
 
-    if (!res.success) {
-        console.error("error: something unexpected happened");
-        return;
-    }
+    const res = await shortenUrlRequest(url, password);
+    popUp(res.success, res.data);
 });

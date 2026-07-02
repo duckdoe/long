@@ -118,3 +118,72 @@ input:focus {
     font-size: 0.82rem;
     color: white;
 }
+
+.message-popup {
+    padding: 24px 16px;
+    background-color: white;
+    max-width: 320px;
+    border-radius: 16px;
+    position: absolute;
+    z-index: 2;
+
+    top: -50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.active {
+    top: 50%;
+}
+
+.message-popup h2 {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.url-container {
+    background-color: #e0e0e0;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-block: 16px;
+    cursor: default;
+}
+
+.copy-btn {
+    cursor: pointer;
+    padding-block: 0.8rem;
+    width: 100%;
+    font-size: 0.9rem;
+    font-family: "Open Sans", sans-serif;
+    border-radius: 8px;
+    border: none;
+    background-color: blue;
+    color: #f2f2f2;
+    transition: 0.3s;
+}
+
+.copy-btn:hover {
+    background-color: hsl(240, 100%, 40%);
+    color: #ffffff;
+}
+
+.url-container .url {
+    text-decoration: underline;
+}
+
+.overlay {
+    position: absolute;
+    background-color: rgb(0, 0, 0, 0.1);
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    display: none;
+}
+
+.overlay-active {
+    display: block;
+}

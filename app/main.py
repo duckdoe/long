@@ -43,7 +43,10 @@ def shorten_url(url: ShortenUrl, db: Session = Depends(get_db)):
         has_password = True
 
     if not is_valid_url:
-        return HTTPException(400, detail="Invalid url provided")
+        return HTTPException(
+            400,
+            detail="Invalid or incomplete url check again",
+        )
 
     code = generate_code()
     while db.get(Urls, code) is not None:
@@ -71,7 +74,7 @@ def get_url(url_id: str, request: Request, db: Session = Depends(get_db)):
     url = db.get(Urls, url_id)
 
     if not url:
-        return HTTPException(404, detail="Page not found")
+        return template.TemplateResponse(request, "404.html")
 
     if url.has_password:
         return template.TemplateResponse(
