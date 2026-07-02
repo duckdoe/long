@@ -4,19 +4,43 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Long</title>
+
+        <link rel="stylesheet" href="/static/styles/app.css" />
     </head>
     <body>
-        <header>
-            <p>Long</p>
-            <span>A url shortener for long links</span>
-        </header>
-        <main>
-            <input type="text" id="url" placeholder="Paste url" />
-            <input type="text" id="password" placeholder="Password" />
-            <button class="js-button">Shorten url</button>
-        </main>
-        <footer>a foot</footer>
+        <div class="card">
+            <header>
+                <p class="logo">Long</p>
+                <span class="tagline"
+                    >A url shortener that allows you to turn long links
+                    short</span
+                >
+            </header>
+            <main>
+                <label for="url">
+                    <span class="url-label">Paste yout long url</span>
+                    <input
+                        type="text"
+                        id="url"
+                        placeholder="https://example.com/long-url"
+                    />
+                    <span class="url-message">hello</span>
+                </label>
 
-        <script src="/static/app.js"></script>
+                <label for="password">
+                    <span class="password-label">Password (Optional)</span>
+                    <input
+                        type="text"
+                        id="password"
+                        placeholder="examplePassword123"
+                    />
+                    <span class="password-message">hello</span>
+                </label>
+
+                <button class="js-button action-btn">Shorten url</button>
+            </main>
+        </div>
+
+        <script src="/static/scripts/app.js"></script>
     </body>
 </html>
